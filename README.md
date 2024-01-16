@@ -13,3 +13,6 @@ A simple command-line task manager. Tasks are stored locally in `tasks.json`.
 ### Commands
 
 - `add <title>` — Add a new task
+- `list` — List open tasks
+- `done <id>` — Mark a task complete
+- `delete <id>` — Delete a task
