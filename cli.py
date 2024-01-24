@@ -3,13 +3,23 @@ import sys
 
 from storage import load_tasks, save_tasks, next_id
 
+PRIORITY_LABELS = {1: "high", 2: "medium", 3: "low"}
+PRIORITY_VALUES = {
+    "high": 1, "h": 1,
+    "medium": 2, "m": 2,
+    "low": 3, "l": 3,
+}
+
 
 def cmd_add(args):
     tasks = load_tasks()
+    priority = PRIORITY_VALUES.get((args.priority or "medium").lower(), 2)
     task = {
         "id": next_id(tasks),
         "title": args.title,
         "done": False,
+        "priority": priority,
+        "due_date": args.due,
     }
     tasks.append(task)
     save_tasks(tasks)
@@ -21,12 +31,18 @@ def cmd_list(args):
     if not tasks:
         print("No tasks.")
         return
-    open_tasks = [t for t in tasks if not t["done"]]
+    open_tasks = [t for t in tasks if not t.get("done")]
     if not open_tasks:
         print("No open tasks.")
         return
+    open_tasks = sorted(
+        open_tasks,
+        key=lambda t: (t.get("priority", 2), t.get("due_date") or "9999-99-99"),
+    )
     for t in open_tasks:
-        print(f"[ ] #{t['id']}  {t['title']}")
+        pri = PRIORITY_LABELS.get(t.get("priority", 2), "?")
+        due = f"  due:{t['due_date']}" if t.get("due_date") else ""
+        print(f"[ ] #{t['id']}  [{pri}]  {t['title']}{due}")
 
 
 def cmd_done(args):
@@ -58,6 +74,11 @@ def build_parser():
 
     p_add = sub.add_parser("add", help="Add a new task")
     p_add.add_argument("title", help="Task description")
+    p_add.add_argument(
+        "-p", "--priority", default="medium", metavar="LEVEL",
+        help="Priority level: high, medium, low  (default: medium)",
+    )
+    p_add.add_argument("-d", "--due", metavar="DATE", help="Due date in YYYY-MM-DD format")
 
     p_list = sub.add_parser("list", help="List open tasks")
 

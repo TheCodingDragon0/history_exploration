@@ -1,10 +1,13 @@
 import json
+import os
 
 TASKS_FILE = "tasks.json"
 
 
 def load_tasks():
-    with open(TASKS_FILE, "r") as f:   # crashes if file doesn't exist yet
+    if not os.path.exists(TASKS_FILE):
+        return []
+    with open(TASKS_FILE, "r") as f:
         return json.load(f)
 
 
@@ -14,4 +17,6 @@ def save_tasks(tasks):
 
 
 def next_id(tasks):
-    return len(tasks) + 1
+    if not tasks:
+        return 1
+    return max(t["id"] for t in tasks) + 1

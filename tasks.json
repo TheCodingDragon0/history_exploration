@@ -2,6 +2,8 @@
   {
     "id": 1,
     "title": "Write project proposal",
-    "done": false
+    "done": false,
+    "priority": 2,
+    "due_date": null
   }
 ]
