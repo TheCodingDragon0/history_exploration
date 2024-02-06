@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from storage import load_tasks, save_tasks, next_id
+from storage import load_tasks, save_tasks, next_id, Task
 
 PRIORITY_LABELS = {1: "high", 2: "medium", 3: "low"}
 PRIORITY_VALUES = {
@@ -14,16 +14,15 @@ PRIORITY_VALUES = {
 def cmd_add(args):
     tasks = load_tasks()
     priority = PRIORITY_VALUES.get((args.priority or "medium").lower(), 2)
-    task = {
-        "id": next_id(tasks),
-        "title": args.title,
-        "done": False,
-        "priority": priority,
-        "due_date": args.due,
-    }
+    task = Task(
+        id=next_id(tasks),
+        title=args.title,
+        priority=priority,
+        due_date=args.due,
+    )
     tasks.append(task)
     save_tasks(tasks)
-    print(f"Added task #{task['id']}: {task['title']}")
+    print(f"Added task #{task.id}: {task.title}")
 
 
 def cmd_list(args):
@@ -31,30 +30,30 @@ def cmd_list(args):
     if not tasks:
         print("No tasks.")
         return
-    open_tasks = [t for t in tasks if not t.get("done")]
+
+    if args.filter:
+        tasks = [t for t in tasks if args.filter.lower() in t.title.lower()]
+
+    open_tasks = [t for t in tasks if not t.done]
     if not open_tasks:
         print("No open tasks.")
         return
-    if args.filter:
-        open_tasks = [t for t in open_tasks if args.filter.lower() in t["title"].lower()]
 
-    open_tasks = sorted(
-        open_tasks,
-        key=lambda t: (t.get("priority", 2), t.get("due_date") or "9999-99-99"),
-    )
+    open_tasks = sorted(open_tasks, key=lambda t: (t.priority, t.due_date or "9999-99-99"))
+
     for t in open_tasks:
-        pri = PRIORITY_LABELS.get(t.get("priority", 2), "?")
-        due = f"  due:{t['due_date']}" if t.get("due_date") else ""
-        print(f"[ ] #{t['id']}  [{pri}]  {t['title']}{due}")
+        pri = PRIORITY_LABELS.get(t.priority, "?")
+        due = f"  due:{t.due_date}" if t.due_date else ""
+        print(f"[ ] #{t.id:<3}  [{pri:<6}]  {t.title}{due}")
 
 
 def cmd_done(args):
     tasks = load_tasks()
     for t in tasks:
-        if t["id"] == args.id:
-            t["done"] = True
+        if t.id == args.id:
+            t.done = True
             save_tasks(tasks)
-            print(f"Marked #{t['id']} done.")
+            print(f"Marked #{t.id} done: {t.title}")
             return
     print(f"Error: task #{args.id} not found.", file=sys.stderr)
     sys.exit(1)
@@ -63,7 +62,7 @@ def cmd_done(args):
 def cmd_delete(args):
     tasks = load_tasks()
     original_count = len(tasks)
-    tasks = [t for t in tasks if t["id"] != args.id]
+    tasks = [t for t in tasks if t.id != args.id]
     if len(tasks) == original_count:
         print(f"Error: task #{args.id} not found.", file=sys.stderr)
         sys.exit(1)
@@ -77,8 +76,9 @@ def build_parser():
 
     p_add = sub.add_parser("add", help="Add a new task")
     p_add.add_argument("title", help="Task description")
-    p_add.add_argument("-p", "--priority", default="medium", metavar="LEVEL")
-    p_add.add_argument("-d", "--due", metavar="DATE")
+    p_add.add_argument("-p", "--priority", default="medium", metavar="LEVEL",
+                       help="Priority level: high, medium, low  (default: medium)")
+    p_add.add_argument("-d", "--due", metavar="DATE", help="Due date in YYYY-MM-DD format")
 
     p_list = sub.add_parser("list", help="List open tasks")
     p_list.add_argument("-f", "--filter", metavar="TEXT",
