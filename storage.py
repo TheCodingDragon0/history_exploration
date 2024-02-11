@@ -13,8 +13,9 @@ class Task:
     title: str
     done: bool = False
     priority: int = 2           # 1=high, 2=medium, 3=low
-    due_date: Optional[str] = None
+    due_date: Optional[str] = None   # ISO 8601, e.g. "2024-02-15"
     tags: List[str] = field(default_factory=list)
+    recur: Optional[str] = None      # "daily"/"weekly"/"monthly" — WIP
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -28,6 +29,7 @@ class Task:
             priority=data.get("priority", 2),
             due_date=data.get("due_date"),
             tags=data.get("tags", []),
+            recur=data.get("recur"),
         )
 
 

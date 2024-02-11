@@ -2,7 +2,7 @@
 
 **Last updated:** 2024-02-01
 
-> **Note:** This document was last updated before the storage refactor (PR #8,
+> **Note:** This document was last updated before the storage refactor (PR #4,
 > merged 2024-02-09). The "Task representation" section below now describes the
 > current state accurately, but some inline code snippets may still reflect the
 > old dict-based approach. Treat the source files as authoritative.

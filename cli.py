@@ -19,6 +19,7 @@ def cmd_add(args):
         title=args.title,
         priority=priority,
         due_date=args.due,
+        recur=args.recur,   # stored but expansion not yet triggered
     )
     tasks.append(task)
     save_tasks(tasks)
@@ -34,17 +35,23 @@ def cmd_list(args):
     if args.filter:
         tasks = [t for t in tasks if args.filter.lower() in t.title.lower()]
 
-    open_tasks = [t for t in tasks if not t.done]
-    if not open_tasks:
-        print("No open tasks.")
+    if args.done_only:
+        tasks = [t for t in tasks if t.done]
+    elif not args.all:
+        tasks = [t for t in tasks if not t.done]
+
+    tasks = sorted(tasks, key=lambda t: (t.priority, t.due_date or "9999-99-99"))
+
+    if not tasks:
+        print("No matching tasks.")
         return
 
-    open_tasks = sorted(open_tasks, key=lambda t: (t.priority, t.due_date or "9999-99-99"))
-
-    for t in open_tasks:
+    for t in tasks:
+        status = "x" if t.done else " "
         pri = PRIORITY_LABELS.get(t.priority, "?")
         due = f"  due:{t.due_date}" if t.due_date else ""
-        print(f"[ ] #{t.id:<3}  [{pri:<6}]  {t.title}{due}")
+        recur_label = f"  recur:{t.recur}" if t.recur else ""  # display only — no logic yet
+        print(f"[{status}] #{t.id:<3}  [{pri:<6}]  {t.title}{due}{recur_label}")
 
 
 def cmd_done(args):
@@ -52,6 +59,7 @@ def cmd_done(args):
     for t in tasks:
         if t.id == args.id:
             t.done = True
+            # TODO: call expand_recurring here once it's implemented
             save_tasks(tasks)
             print(f"Marked #{t.id} done: {t.title}")
             return
@@ -70,7 +78,27 @@ def cmd_delete(args):
     print(f"Deleted task #{args.id}.")
 
 
-def build_parser():
+# ---------------------------------------------------------------------------
+# Recurring task expansion — WIP, not yet connected to command flow
+# ---------------------------------------------------------------------------
+
+def expand_recurring(tasks):
+    """
+    After a recurring task is marked done, generate the next occurrence.
+    Returns a list of new Task objects to append to the task list.
+
+    TODO: figure out where to call this — from cmd_done? a separate 'sync' command?
+    TODO: handle tasks with no due_date
+    TODO: implement monthly interval
+    """
+    new_tasks = []
+    for t in tasks:
+        if t.recur and t.done:
+            pass  # placeholder — date-advance logic lives in recurring.py
+    return new_tasks
+
+
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="taskr", description="A simple CLI task manager.")
     sub = parser.add_subparsers(dest="command", metavar="command")
 
@@ -79,10 +107,16 @@ def build_parser():
     p_add.add_argument("-p", "--priority", default="medium", metavar="LEVEL",
                        help="Priority level: high, medium, low  (default: medium)")
     p_add.add_argument("-d", "--due", metavar="DATE", help="Due date in YYYY-MM-DD format")
+    p_add.add_argument("--recur", metavar="INTERVAL",
+                       help="Recurrence interval: daily, weekly, monthly  [experimental]")
 
-    p_list = sub.add_parser("list", help="List open tasks")
+    p_list = sub.add_parser("list", help="List tasks")
     p_list.add_argument("-f", "--filter", metavar="TEXT",
                         help="Show only tasks whose title contains TEXT")
+    p_list.add_argument("-a", "--all", action="store_true",
+                        help="Include completed tasks in output")
+    p_list.add_argument("--done", dest="done_only", action="store_true",
+                        help="Show only completed tasks")
 
     p_done = sub.add_parser("done", help="Mark a task complete")
     p_done.add_argument("id", type=int)

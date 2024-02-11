@@ -3,11 +3,39 @@
   "tasks": [
     {
       "id": 1,
-      "title": "Write project proposal",
+      "title": "Write unit tests for storage module",
+      "done": false,
+      "priority": 1,
+      "due_date": "2024-02-20",
+      "tags": [],
+      "recur": null
+    },
+    {
+      "id": 2,
+      "title": "Update README with filter and recur examples",
       "done": false,
       "priority": 2,
       "due_date": null,
-      "tags": []
+      "tags": [],
+      "recur": null
+    },
+    {
+      "id": 3,
+      "title": "Weekly team sync",
+      "done": true,
+      "priority": 2,
+      "due_date": "2024-02-05",
+      "tags": [],
+      "recur": "weekly"
+    },
+    {
+      "id": 4,
+      "title": "Review spike notes for recurring tasks",
+      "done": false,
+      "priority": 1,
+      "due_date": "2024-02-12",
+      "tags": [],
+      "recur": null
     }
   ]
 }
