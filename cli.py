@@ -35,6 +35,9 @@ def cmd_list(args):
     if not open_tasks:
         print("No open tasks.")
         return
+    if args.filter:
+        open_tasks = [t for t in open_tasks if args.filter.lower() in t["title"].lower()]
+
     open_tasks = sorted(
         open_tasks,
         key=lambda t: (t.get("priority", 2), t.get("due_date") or "9999-99-99"),
@@ -74,19 +77,18 @@ def build_parser():
 
     p_add = sub.add_parser("add", help="Add a new task")
     p_add.add_argument("title", help="Task description")
-    p_add.add_argument(
-        "-p", "--priority", default="medium", metavar="LEVEL",
-        help="Priority level: high, medium, low  (default: medium)",
-    )
-    p_add.add_argument("-d", "--due", metavar="DATE", help="Due date in YYYY-MM-DD format")
+    p_add.add_argument("-p", "--priority", default="medium", metavar="LEVEL")
+    p_add.add_argument("-d", "--due", metavar="DATE")
 
     p_list = sub.add_parser("list", help="List open tasks")
+    p_list.add_argument("-f", "--filter", metavar="TEXT",
+                        help="Show only tasks whose title contains TEXT")
 
     p_done = sub.add_parser("done", help="Mark a task complete")
-    p_done.add_argument("id", type=int, help="Task ID")
+    p_done.add_argument("id", type=int)
 
     p_delete = sub.add_parser("delete", help="Delete a task")
-    p_delete.add_argument("id", type=int, help="Task ID")
+    p_delete.add_argument("id", type=int)
 
     return parser
 
