@@ -2,6 +2,7 @@ import argparse
 import sys
 
 from storage import load_tasks, save_tasks, next_id, Task
+from recurring import make_next_occurrence
 
 PRIORITY_LABELS = {1: "high", 2: "medium", 3: "low"}
 PRIORITY_VALUES = {
@@ -59,9 +60,14 @@ def cmd_done(args):
     for t in tasks:
         if t.id == args.id:
             t.done = True
-            # TODO: call expand_recurring here once it's implemented
+            # For recurring tasks, automatically create the next occurrence
+            next_task = make_next_occurrence(t, tasks)
+            if next_task:
+                tasks.append(next_task)
             save_tasks(tasks)
             print(f"Marked #{t.id} done: {t.title}")
+            if next_task:
+                print(f"Created next occurrence: #{next_task.id} (due: {next_task.due_date})")
             return
     print(f"Error: task #{args.id} not found.", file=sys.stderr)
     sys.exit(1)
@@ -79,23 +85,8 @@ def cmd_delete(args):
 
 
 # ---------------------------------------------------------------------------
-# Recurring task expansion — WIP, not yet connected to command flow
+# Recurring task expansion is handled by recurring.py
 # ---------------------------------------------------------------------------
-
-def expand_recurring(tasks):
-    """
-    After a recurring task is marked done, generate the next occurrence.
-    Returns a list of new Task objects to append to the task list.
-
-    TODO: figure out where to call this — from cmd_done? a separate 'sync' command?
-    TODO: handle tasks with no due_date
-    TODO: implement monthly interval
-    """
-    new_tasks = []
-    for t in tasks:
-        if t.recur and t.done:
-            pass  # placeholder — date-advance logic lives in recurring.py
-    return new_tasks
 
 
 def build_parser() -> argparse.ArgumentParser:

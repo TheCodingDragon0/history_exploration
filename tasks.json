@@ -4,7 +4,7 @@
     {
       "id": 1,
       "title": "Write unit tests for storage module",
-      "done": false,
+      "done": true,
       "priority": 1,
       "due_date": "2024-02-20",
       "tags": [],
@@ -36,6 +36,24 @@
       "due_date": "2024-02-12",
       "tags": [],
       "recur": null
+    },
+    {
+      "id": 5,
+      "title": "Weekly team sync",
+      "done": true,
+      "priority": 2,
+      "due_date": "2026-04-07",
+      "tags": [],
+      "recur": "weekly"
+    },
+    {
+      "id": 6,
+      "title": "Weekly team sync",
+      "done": false,
+      "priority": 2,
+      "due_date": "2026-04-14",
+      "tags": [],
+      "recur": "weekly"
     }
   ]
 }
